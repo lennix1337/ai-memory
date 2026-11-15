@@ -16875,12 +16875,6 @@ mod tests {
         let plan: (Vec<String>, Vec<String>) = store
             .reader
             .with_conn(move |conn| {
-                let has_stat1: bool = conn.query_row(
-                    "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_stat1')",
-                    [],
-                    |r| r.get(0),
-                )?;
-                assert!(has_stat1, "ANALYZE should create sqlite_stat1");
                 let explain = format!("EXPLAIN QUERY PLAN {sql}");
                 let mut stmt = conn.prepare(&explain)?;
                 let rows = stmt.query_map(

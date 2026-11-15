@@ -262,6 +262,8 @@ impl Store {
         conn.pragma_update(None, "foreign_keys", "OFF")?;
         migrations::run(&mut conn)?;
         conn.pragma_update(None, "foreign_keys", "ON")?;
+        conn.pragma_update(None, "analysis_limit", 400)?;
+        conn.execute_batch("PRAGMA optimize;")?;
 
         // One-shot, idempotent entity-index backfill (docs/temporal.md).
         // Populates entities/entity_page_links from existing frontmatter
