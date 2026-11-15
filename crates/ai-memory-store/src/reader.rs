@@ -16829,12 +16829,31 @@ fn open_read_only(path: &Path) -> StoreResult<Connection> {
         | OpenFlags::SQLITE_OPEN_URI
         | OpenFlags::SQLITE_OPEN_NO_MUTEX;
     let conn = Connection::open_with_flags(path, flags)?;
-    conn.pragma_update(None, "busy_timeout", 5_000)?;
+    crate::apply_connection_pragmas(&conn)?;
     Ok(conn)
 }
 
 #[cfg(test)]
 mod tests {
+
+    #[tokio::test]
+    async fn reader_connections_configure_cache_mmap_and_temp_store() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let store = Store::open(tmp.path()).unwrap();
+        let (cache_size, temp_store, mmap_size): (i64, i64, i64) = store
+            .reader
+            .with_conn(|conn| {
+                let cache_size: i64 = conn.pragma_query_value(None, "cache_size", |r| r.get(0))?;
+                let temp_store: i64 = conn.pragma_query_value(None, "temp_store", |r| r.get(0))?;
+                let mmap_size: i64 = conn.pragma_query_value(None, "mmap_size", |r| r.get(0))?;
+                Ok((cache_size, temp_store, mmap_size))
+            })
+            .await
+            .unwrap();
+        assert_eq!(cache_size, -65_536);
+        assert_eq!(temp_store, 2);
+        assert_eq!(mmap_size, 268_435_456);
+    }
 
     #[tokio::test]
     async fn answer_evidence_metadata_uses_session_time_only_in_the_same_scope() {
