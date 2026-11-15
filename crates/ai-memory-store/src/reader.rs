@@ -16856,6 +16856,60 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn v102_indexes_and_stat1_are_used_by_interrupted_session_query() {
+        let tmp = tempfile::TempDir::new().unwrap();
+        let store = Store::open(tmp.path()).unwrap();
+        let ws = store.writer.get_or_create_workspace("local").await.unwrap();
+        let project = store
+            .writer
+            .get_or_create_project(ws, "app", None)
+            .await
+            .unwrap();
+        let sql = crate::reader::latest_interrupted_session_candidate_sql(
+            &ai_memory_core::OwnerFilter::Any,
+            false,
+        );
+        let plan: (Vec<String>, Vec<String>) = store
+            .reader
+            .with_conn(move |conn| {
+                let has_stat1: bool = conn.query_row(
+                    "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_stat1')",
+                    [],
+                    |r| r.get(0),
+                )?;
+                assert!(has_stat1, "ANALYZE should create sqlite_stat1");
+                let explain = format!("EXPLAIN QUERY PLAN {sql}");
+                let mut stmt = conn.prepare(&explain)?;
+                let rows = stmt.query_map(
+                    rusqlite::named_params! {
+                        ":ws": ws.as_bytes(),
+                        ":proj": project.as_bytes(),
+                    },
+                    |r| r.get::<_, String>(3),
+                )?;
+                let open_plan: Vec<String> = conn
+                    .prepare(
+                        "EXPLAIN QUERY PLAN SELECT COUNT(*) FROM sessions WHERE workspace_id = ?1 AND project_id = ?2 AND ended_at IS NULL",
+                    )?
+                    .query_map([ws.as_bytes(), project.as_bytes()], |r| r.get::<_, String>(3))?
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok((rows.collect::<Result<Vec<_>, _>>()?, open_plan))
+            })
+            .await
+            .unwrap();
+        let joined = plan.0.join("\n");
+        let open_joined = plan.1.join("\n");
+        assert!(
+            open_joined.contains("idx_sessions_open_started"),
+            "expected idx_sessions_open_started in plan:\n{open_joined}"
+        );
+        assert!(
+            joined.contains("idx_handoffs_from_session"),
+            "expected idx_handoffs_from_session in plan:\n{joined}"
+        );
+    }
+
+    #[tokio::test]
     async fn answer_evidence_metadata_uses_session_time_only_in_the_same_scope() {
         use ai_memory_core::PageId;
         let tmp = tempfile::TempDir::new().unwrap();
