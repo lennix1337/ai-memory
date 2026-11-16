@@ -112,8 +112,8 @@ pub use reader::{
     SessionEndDisposition, SessionKindSummary, SessionLine, SessionObservationSnapshot,
     SessionPromptTitles, SessionSummary, SessionToolTitles, SessionUsageView, SettledPage,
     StatusCounts, StorageStatus, StoredEmbedding, StoredPageBody, StreamTimings, TokenCallOrder,
-    TokenCallQuery, TokenCallView, TokenUsageReport, VectorQuery, WorkspaceScopeRow,
-    WorkspaceSummary, WikiFileFingerprintRow, f32_vec_to_bytes, highlighted_snippet_html, plain_snippet,
+    TokenCallQuery, TokenCallView, TokenUsageReport, VectorQuery, WikiFileFingerprintRow,
+    WorkspaceScopeRow, WorkspaceSummary, f32_vec_to_bytes, highlighted_snippet_html, plain_snippet,
     project_name_fold_key,
 };
 pub use retrieval_tuning::{RetrievalTuning, is_session_recall_query};

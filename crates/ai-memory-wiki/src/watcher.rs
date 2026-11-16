@@ -468,7 +468,7 @@ impl FileFingerprint {
     }
 
     fn to_row(
-        &self,
+        self,
         workspace_id: WorkspaceId,
         project_id: ProjectId,
         path: PagePath,
@@ -506,7 +506,10 @@ impl FileFingerprint {
 
 fn system_time_to_unix(t: std::time::SystemTime) -> (i64, u32) {
     match t.duration_since(std::time::UNIX_EPOCH) {
-        Ok(d) => (i64::try_from(d.as_secs()).unwrap_or(i64::MAX), d.subsec_nanos()),
+        Ok(d) => (
+            i64::try_from(d.as_secs()).unwrap_or(i64::MAX),
+            d.subsec_nanos(),
+        ),
         Err(e) => {
             let d = e.duration();
             let secs = i64::try_from(d.as_secs()).unwrap_or(i64::MAX);
@@ -527,8 +530,7 @@ fn unix_to_system_time(secs: i64, nanos: u32) -> Option<std::time::SystemTime> {
         if nanos == 0 {
             std::time::UNIX_EPOCH.checked_sub(Duration::from_secs(abs_secs))
         } else {
-            std::time::UNIX_EPOCH
-                .checked_sub(Duration::new(abs_secs - 1, 1_000_000_000 - nanos))
+            std::time::UNIX_EPOCH.checked_sub(Duration::new(abs_secs - 1, 1_000_000_000 - nanos))
         }
     }
 }
@@ -773,10 +775,7 @@ async fn reconcile_missing_pages(
     }
 }
 
-async fn seed_fingerprints_from_store(
-    wiki: &Wiki,
-    indexed_fingerprints: &mut IndexedFingerprints,
-) {
+async fn seed_fingerprints_from_store(wiki: &Wiki, indexed_fingerprints: &mut IndexedFingerprints) {
     match wiki.load_file_fingerprints().await {
         Ok(rows) => {
             for row in rows {

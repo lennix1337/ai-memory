@@ -1761,7 +1761,9 @@ fn save_backfill_watermark_if_advanced(
         return Ok(());
     }
     let max_rowid: Option<i64> =
-        conn.query_row(&format!("SELECT MAX(rowid) FROM {table}"), [], |row| row.get(0))?;
+        conn.query_row(&format!("SELECT MAX(rowid) FROM {table}"), [], |row| {
+            row.get(0)
+        })?;
     if let Some(max_r) = max_rowid
         && prev.is_none_or(|p| max_r > p)
     {
