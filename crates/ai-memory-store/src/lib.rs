@@ -173,7 +173,10 @@ pub struct Store {
 
 /// Per-connection SQLite page cache budget: 64 MiB (negative = KiB).
 const SQLITE_CACHE_SIZE_KIB: i64 = -65_536;
-/// Per-connection memory-mapped I/O window: 256 MiB.
+/// Per-connection memory-mapped I/O window: 1 GiB on 64-bit, 256 MiB on 32-bit.
+#[cfg(target_pointer_width = "64")]
+const SQLITE_MMAP_SIZE_BYTES: i64 = 1_073_741_824;
+#[cfg(not(target_pointer_width = "64"))]
 const SQLITE_MMAP_SIZE_BYTES: i64 = 268_435_456;
 
 /// Apply performance and concurrency PRAGMAs shared by writer and reader connections.

@@ -16941,6 +16941,9 @@ mod tests {
             .unwrap();
         assert_eq!(cache_size, -65_536);
         assert_eq!(temp_store, 2);
+        #[cfg(target_pointer_width = "64")]
+        assert_eq!(mmap_size, 1_073_741_824);
+        #[cfg(not(target_pointer_width = "64"))]
         assert_eq!(mmap_size, 268_435_456);
     }
 
