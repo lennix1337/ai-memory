@@ -113,7 +113,7 @@ pub use reader::{
     SessionPromptTitles, SessionSummary, SessionToolTitles, SessionUsageView, SettledPage,
     StatusCounts, StorageStatus, StoredEmbedding, StoredPageBody, StreamTimings, TokenCallOrder,
     TokenCallQuery, TokenCallView, TokenUsageReport, VectorQuery, WorkspaceScopeRow,
-    WorkspaceSummary, f32_vec_to_bytes, highlighted_snippet_html, plain_snippet,
+    WorkspaceSummary, WikiFileFingerprintRow, f32_vec_to_bytes, highlighted_snippet_html, plain_snippet,
     project_name_fold_key,
 };
 pub use retrieval_tuning::{RetrievalTuning, is_session_recall_query};
